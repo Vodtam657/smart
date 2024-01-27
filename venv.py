@@ -1,47 +1,88 @@
-from PyQt5.QtWidgets import *
+import json
+
+from PyQt6.QtWidgets import *
+
+notes = {}
 
 app = QApplication([])
 window = QWidget()
-window.resize(900,700)
+window.setWindowTitle("Розумні замітки")
+window.resize(900, 600)
 
-zambtn = QPushButton("Створити замітку")
-delete = QPushButton("Видалити замітку")
-savebtp = QPushButton("Зберегти замітку")
-vikrbtn = QPushButton("Відкріпити від замітки")
-dodatubtn = QPushButton("Додати до замітки")
-searchbtn = QPushButton("Шукати замітки по тегу")
+textEdit = QTextEdit()
+text1 = QLabel("Список заміток")
+listNotes = QListWidget()
+createBtn = QPushButton("Створити замітку")
+deleteBtn = QPushButton("Видалити замітку")
+changeBtn = QPushButton("Змінити замітку")
+addBtn = QPushButton("Додати до замітки")
+vidkripBtn = QPushButton("Відкріпити від замітки")
+poshukBtn = QPushButton("Пошук за тегом")
 
-text = QTextEdit()
-list1 = QListWidget()
-list2 = QListWidget()
-lll = QLabel("Список заміток")
-kkk = QLabel("Список тегів")
-
-
-
-
+text2 = QLabel("Список тегів")
+listTag = QListWidget()
+lineEdit = QLineEdit()
 
 
+mainLine = QHBoxLayout()
+column1 = QVBoxLayout()
+column1.addWidget(textEdit)
+mainLine.addLayout(column1)
+column2 = QVBoxLayout()
+column2.addWidget(text1)
 
-mainline = QHBoxLayout()
-k1line = QVBoxLayout()
-k2line = QVBoxLayout()
-mainline.addLayout(k1line)
-mainline.addLayout(k2line)
+column2.addWidget(listNotes)
+column2.addWidget(createBtn)
 
-k1line.addWidget(text)
-k2line.addWidget(dodatubtn)
-k2line.addWidget(list1)
-k2line.addWidget(list2)
-k2line.addWidget(zambtn)
-k2line.addWidget(delete)
-k2line.addWidget(savebtp)
-
-mainline.addWidget(lll)
+column2.addWidget(deleteBtn)
+column2.addWidget(changeBtn)
+column2.addWidget(text2)
+column2.addWidget(listTag)
+column2.addWidget(lineEdit)
+column2.addWidget(addBtn)
+column2.addWidget(vidkripBtn)
+column2.addWidget(poshukBtn)
 
 
+mainLine.addLayout(column2)
+
+window.setLayout(mainLine)
 
 
-window.setLayout(mainline)
+def read_data():
+    global notes
+    with open("database.json", "r", encoding="utf-8") as file:
+        notes = json.load(file)
+
+def write_data():
+    global notes
+    with open("database.json", "w", encoding="utf-8") as file:
+        json.dump(notes,file, ensure_ascii=False, indent=4)
+read_data()
+listNotes.addItems(notes)
+
+def vmist_note():
+    name = listNotes.selectedItems()[0].text()
+    textEdit.setText(notes[name]["вміст"])
+
+listNotes.itemClicked.connect(vmist_note)
+
+def change_note():
+    name = listNotes.selectedItems()[0].text()
+    notes[name]["вміст"] = textEdit.toPlainText()
+    write_data()
+
+
+def add_note():
+    res, ok = QInputDialog.getText(window, "Введення", "Введіть назву замітки")
+    if ok:
+        notes[res] = {
+            "вміст": "",
+            "теги": []
+
+        }
+        write_data()
+
+createBtn.clicked.connect(add_note)
 window.show()
 app.exec()
